@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import safeEval from 'safe-eval';
 import Button from './components/button';
 import './css/style.css';
 
@@ -36,7 +37,7 @@ class Application extends Component {
     calculate = (symb) => {
         let {current, previous} = this.state;
         if(previous.length > 0){
-            current = eval(String(previous[previous.length - 1] + current));
+            current = safeEval(String(previous[previous.length - 1] + current));
             this.setState({current, previous: [], nextIsReset: true})
         }
     }
@@ -63,7 +64,7 @@ class Application extends Component {
         ];
         return (
             <div className="App">
-            
+
                 {this.state.previous.length > 0 ? 
                     <div className="floaty-last">{this.state.previous[this.state.previous.length - 1]}</div>
                     :
