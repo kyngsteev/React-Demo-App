@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-//import HighScore from './HighScore';
 import Button from './components/button';
 import './css/style.css';
 
@@ -9,37 +8,37 @@ class Application extends Component {
         super(props);
 
         this.state = {
-            // count : 0,
-            // overTen: false
             current: '0',
-            previous: []
+            previous: [],
+            nextIsReset: false
         }
     }
 
-    // handleClick = () => {
-    //     this.setState({count: this.state.count + 1});
-    // }
-
-    // resetCount = (e) => {
-    //     this.setState({
-    //         count: 0,
-    //         overTen: false
-    //     });
-    // }
-
-    // componentDidUpdate(props, state){
-    //     if(this.state.count > 10 && this.state.count !== state.count && !this.state.overTen){
-    //         console.log("Updating overTen")
-    //         this.setState({overTen: true});
-    //     }
-    // }
-
     reset = () => {
-        this.setState({result: '0'});
+        this.setState({current: '0', previous: [], nextIsReset: false});
     }
 
     addToCurrent = (symb) => {
-        this.setState({current: this.state.current + symb});
+        if(["/", "*", "+", "-"].indexOf(symb) > -1){
+            let {previous} = this.state;
+            previous.push(this.state.current + symb);
+            this.setState({previous, nextIsReset: true});
+        }
+        else{
+            if((this.state.current === "0" && symb !== ".") || this.state.nextIsReset){
+                this.setState({current: symb, nextIsReset: false});
+            }else{
+                this.setState({current: this.state.current + symb});
+            }
+        }
+    }
+
+    calculate = (symb) => {
+        let {current, previous} = this.state;
+        if(previous.length > 0){
+            current = eval(String(previous[previous.length - 1] + current));
+            this.setState({current, previous: [], nextIsReset: true})
+        }
     }
 
     render(){
@@ -60,24 +59,26 @@ class Application extends Component {
             {symbol: '+', cols: 1, action: this.addToCurrent},
             {symbol: '0', cols: 2, action: this.addToCurrent},
             {symbol: '.', cols: 1, action: this.addToCurrent},
-            {symbol: '=', cols: 1, action: this.addToCurrent},
+            {symbol: '=', cols: 1, action: this.calculate},
         ];
         return (
             <div className="App">
-                {/* <h1>You clicked the button {count} times</h1>
-                <HighScore 
-                    overTen={this.state.overTen}
-                    onReset={this.resetCount}
-                />
-                <span>
-                    <button onClick={() => this.handleClick()}>Click Me</button>
-                </span> */}
+            
+                {this.state.previous.length > 0 ? 
+                    <div className="floaty-last">{this.state.previous[this.state.previous.length - 1]}</div>
+                    :
+                    null
+                }
 
-                <input className="result" type="text" value={this.state.current}/>
+                <div>
+                    <input className="result" type="text" value={this.state.current}/>
+                </div>
 
-                {buttons.map((btn, i) => {
-                    return <Button symbol={btn.symb} cols={btn.cols} action={(symbol) => btn.action} />
-                })}
+                {
+                    buttons.map((btn, i) => {
+                        return <Button key={i} symbol={btn.symbol} cols={btn.cols} action={(symbol) => btn.action(symbol)} />
+                    })
+                }
 
             </div>
         );
